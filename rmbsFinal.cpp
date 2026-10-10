@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <cmath>
 #include <climits>
-
 #ifdef _WIN32
 #include <conio.h>
 #else
@@ -15,31 +14,23 @@
 #include <unistd.h>
 #include <cstdio>
 #endif
-
 using namespace std;
-
-const int MAX = 100;      // max menu items / order lines
-const int MAX_NAME = 40;  // max characters in an item name
-const int MAX_QTY = 1000; // max quantity per order line
-
+const int MAX = 100;      
+const int MAX_NAME = 40;  
+const int MAX_QTY = 1000; 
 struct Item
 {
     string name;
     double price;
 };
-
 struct Order
 {
     string name;
     double price;
     int qty;
 };
-
 vector<Item> menu;
 vector<Order> orders;
-
-// ======================= Helpers =======================
-
 string trim(const string &s)
 {
     size_t start = 0;
@@ -50,7 +41,6 @@ string trim(const string &s)
         end--;
     return s.substr(start, end - start);
 }
-
 bool equalsIgnoreCase(const string &a, const string &b)
 {
     if (a.size() != b.size())
@@ -62,9 +52,6 @@ bool equalsIgnoreCase(const string &a, const string &b)
     }
     return true;
 }
-
-// Reads one full line. If input is closed (Ctrl+D / Ctrl+Z), exits cleanly
-// instead of looping forever.
 string readLine()
 {
     string line;
@@ -75,7 +62,6 @@ string readLine()
     }
     return trim(line);
 }
-
 bool parseInt(const string &s, int &value)
 {
     if (s.empty())
@@ -94,7 +80,6 @@ bool parseInt(const string &s, int &value)
         return false;
     }
 }
-
 bool parseDouble(const string &s, double &value)
 {
     if (s.empty())
@@ -106,8 +91,6 @@ bool parseDouble(const string &s, double &value)
     value = v;
     return true;
 }
-
-// Keeps asking until the user enters an integer in [lo, hi].
 int readInt(const string &prompt, int lo, int hi)
 {
     while (true)
@@ -120,8 +103,6 @@ int readInt(const string &prompt, int lo, int hi)
         cout << "Invalid input. Enter a number from " << lo << " to " << hi << ".\n";
     }
 }
-
-// Reads a price. Returns false if the user typed 0 (go back).
 bool readPrice(const string &prompt, double &price)
 {
     while (true)
@@ -140,7 +121,6 @@ bool readPrice(const string &prompt, double &price)
         return true;
     }
 }
-
 bool confirm(const string &prompt)
 {
     while (true)
@@ -155,7 +135,6 @@ bool confirm(const string &prompt)
     }
 }
 
-// Reads a password and shows '*' for every character typed.
 string readPassword(const string &prompt)
 {
     cout << prompt << flush;
@@ -167,17 +146,17 @@ string readPassword(const string &prompt)
         int c = _getch();
         if (c == '\r' || c == '\n')
             break;
-        if (c == 3) // Ctrl+C
+        if (c == 3) 
         {
             cout << "\n";
             exit(0);
         }
-        if (c == 0 || c == 224) // special key (arrows etc.), skip second code
+        if (c == 0 || c == 224) 
         {
             _getch();
             continue;
         }
-        if (c == 8) // backspace
+        if (c == 8) 
         {
             if (!pw.empty())
             {
@@ -196,7 +175,6 @@ string readPassword(const string &prompt)
     termios oldt;
     if (tcgetattr(STDIN_FILENO, &oldt) != 0)
     {
-        // Input is not a terminal (e.g. piped), fall back to normal reading
         return readLine();
     }
     termios newt = oldt;
@@ -210,7 +188,7 @@ string readPassword(const string &prompt)
         int c = getchar();
         if (c == EOF || c == '\n' || c == '\r')
             break;
-        if (c == 127 || c == 8) // backspace
+        if (c == 127 || c == 8)
         {
             if (!pw.empty())
             {
@@ -230,9 +208,6 @@ string readPassword(const string &prompt)
 
     return pw;
 }
-
-// ======================= Login =======================
-
 enum LoginResult
 {
     LOGIN_OK,
@@ -260,9 +235,6 @@ LoginResult login(const string &user, const string &pass)
     }
     return LOGIN_FAILED;
 }
-
-// ======================= Files =======================
-
 void loadMenu()
 {
     menu.clear();
@@ -343,9 +315,6 @@ void saveOrders()
     for (size_t i = 0; i < orders.size(); i++)
         fp << orders[i].name << "," << orders[i].price << "," << orders[i].qty << "\n";
 }
-
-// ======================= Lookup =======================
-
 int findMenu(const string &name)
 {
     for (size_t i = 0; i < menu.size(); i++)
@@ -355,9 +324,6 @@ int findMenu(const string &name)
     }
     return -1;
 }
-
-// An order line is matched by name AND price, so if the menu price changed
-// after an earlier order, the old quantity keeps the price it was ordered at.
 int findOrder(const string &name, double price)
 {
     for (size_t i = 0; i < orders.size(); i++)
@@ -368,9 +334,6 @@ int findOrder(const string &name, double price)
     }
     return -1;
 }
-
-// ======================= Display =======================
-
 void showMenu()
 {
     cout << "\n===== MENU =====\n";
@@ -401,9 +364,6 @@ void showOrders()
              << "  (Rs " << orders[i].price << " each)\n";
     }
 }
-
-// ======================= Admin =======================
-
 void addItem()
 {
     if ((int)menu.size() >= MAX)
@@ -492,7 +452,6 @@ void deleteItem()
     saveMenu();
     cout << "Deleted.\n";
 }
-
 void adminPanel()
 {
     while (true)
@@ -504,7 +463,6 @@ void adminPanel()
         cout << "4. Delete Item\n";
         cout << "0. Back\n";
         int choice = readInt("Choice: ", 0, 4);
-
         if (choice == 0)
             return;
         else if (choice == 1)
@@ -517,9 +475,6 @@ void adminPanel()
             deleteItem();
     }
 }
-
-// ======================= Staff =======================
-
 double orderTotal()
 {
     double total = 0;
@@ -527,7 +482,6 @@ double orderTotal()
         total += orders[i].price * orders[i].qty;
     return total;
 }
-
 void generateBill()
 {
     cout << "\n========== BILL ==========\n";
@@ -541,7 +495,6 @@ void generateBill()
     cout << "--------------------------\n";
     cout << "TOTAL = Rs " << orderTotal() << "\n";
 }
-
 void orderItem()
 {
     if (menu.empty())
@@ -549,7 +502,6 @@ void orderItem()
         cout << "Menu is empty. Ask admin to add items.\n";
         return;
     }
-
     while (true)
     {
         showMenu();
@@ -561,7 +513,7 @@ void orderItem()
         int qty = readInt("Quantity of " + item.name + " (0 to pick another item): ",
                           0, MAX_QTY);
         if (qty == 0)
-            continue; // back to item selection
+            continue;
 
         int id = findOrder(item.name, item.price);
         if (id != -1 && orders[id].qty + qty > MAX_QTY)
@@ -574,7 +526,6 @@ void orderItem()
             cout << "Order full.\n";
             return;
         }
-
         if (!confirm("Add " + to_string(qty) + " x " + item.name + "?"))
         {
             cout << "Not added.\n";
@@ -598,7 +549,6 @@ void orderItem()
         return;
     }
 }
-
 void cancelOrder()
 {
     showOrders();
@@ -633,7 +583,6 @@ void cancelOrder()
     saveOrders();
     cout << "Updated.\n";
 }
-
 void billOrders()
 {
     if (orders.empty())
@@ -651,7 +600,6 @@ void billOrders()
     saveOrders();
     cout << "\nOrders cleared after billing.\n";
 }
-
 void staffPanel()
 {
     while (true)
@@ -676,21 +624,15 @@ void staffPanel()
             billOrders();
     }
 }
-
-// ======================= Main =======================
-
 int main()
 {
     const string adminUser = "admin";
     const string adminPass = "1234";
     const string staffUser = "staff";
     const string staffPass = "1111";
-
     cout << fixed << setprecision(2);
-
     loadMenu();
     loadOrders();
-
     while (true)
     {
         cout << "\n===== RESTAURANT SYSTEM =====\n";
@@ -698,7 +640,6 @@ int main()
         cout << "2. Staff Login\n";
         cout << "0. Exit\n";
         int choice = readInt("Choice: ", 0, 2);
-
         if (choice == 0)
         {
             if (confirm("Exit program?"))
@@ -721,7 +662,6 @@ int main()
                 cout << "Too many failed attempts.\n";
         }
     }
-
     cout << "Program Exited.\n";
     return 0;
 }
